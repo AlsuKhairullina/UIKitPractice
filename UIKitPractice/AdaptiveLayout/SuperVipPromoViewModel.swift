@@ -11,6 +11,7 @@ import Foundation
 class SuperVipPromoViewModel: ObservableObject {
 
     @Published var modelPublisher: SuperVipPromoModel?
+    @Published var isSubscribed: Bool = false
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -27,7 +28,7 @@ private extension SuperVipPromoViewModel {
             descriptionLabelText: "Только до 15 января вы можете подключить Супер VIP на 30 дней вместо 90 дней. Попробуйте полный безлимит всего за 45 000 UZS.",
             imageName: "premium",
             cashbackLabelText: "Вы получите кешбэк до 15%",
-            connectButtonText: "Подключить",
+            connectButtonText: isSubscribed ? "Изменить сейчас" : "Подключить",
             bottomButtonText: "Изменить с 6 октября"
         )
     }
