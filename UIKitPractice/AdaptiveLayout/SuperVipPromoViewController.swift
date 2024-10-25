@@ -93,14 +93,21 @@ final class SuperVipPromoViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         bindPublishers()
+        bindSubscription()
         viewModel.sendDataToView()
         setupUI()
+        
+        let action = UIAction { [weak self] action in
+            guard let self = self else { return }
+            self.viewModel.isSubscribed.toggle()
+        }
+        
+        connectButton.addAction(action, for: .touchUpInside)
     }
-
+    
     private func setupUI() {
         view.backgroundColor = .systemBackground
-        bottomButton.isHidden = false
-
+        
         view.addSubviews([
             imageView,
             mainLabel,
@@ -163,8 +170,27 @@ final class SuperVipPromoViewController: UIViewController {
             bottomButton.widthAnchor.constraint(equalToConstant: Constants.viewWidth),
             bottomButton.heightAnchor.constraint(equalToConstant: 64)
         ])
-        topConstraint = cashbackLabel.topAnchor.constraint(equalTo: bannerContainerView.bottomAnchor, constant: 60)
+    }
+    
+    private func updateUI(isSubscribed: Bool) {
+        
+        let connectButtonText = isSubscribed ? "Изменить сейчас" : "Подключить"
+        connectButton.setTitle(connectButtonText, for: .normal)
+        topConstraint?.isActive = false
+        
+        if isSubscribed {
+            bottomButton.isHidden = false
+            topConstraint = cashbackLabel.topAnchor.constraint(equalTo: bannerContainerView.bottomAnchor, constant: 10)
+        } else {
+            bottomButton.isHidden = true
+            topConstraint = cashbackLabel.topAnchor.constraint(equalTo: bannerContainerView.bottomAnchor, constant: 60)
+        }
+        
         topConstraint?.isActive = true
+        
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
     }
 }
 
@@ -181,7 +207,15 @@ private extension SuperVipPromoViewController {
                 descriptionLabel.text = model?.descriptionLabelText
                 cashbackLabel.text = model?.cashbackLabelText
                 bottomButton.setTitle(model?.bottomButtonText, for: .normal)
-                connectButton.setTitle(model?.connectButtonText, for: .normal)
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func bindSubscription() {
+        viewModel.$isSubscribed
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isSubscribed in
+                self?.updateUI(isSubscribed: isSubscribed)
             }
             .store(in: &cancellables)
     }
